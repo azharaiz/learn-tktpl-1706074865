@@ -1,4 +1,4 @@
-package id.ac.ui.cs.mobileprogramming.azharaiz.helloworld;
+package id.ac.ui.cs.mobileprogramming.azharaiz.labs;
 
 import org.junit.Test;
 
