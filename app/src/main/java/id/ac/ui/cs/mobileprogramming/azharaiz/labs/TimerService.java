@@ -3,7 +3,6 @@ package id.ac.ui.cs.mobileprogramming.azharaiz.labs;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
