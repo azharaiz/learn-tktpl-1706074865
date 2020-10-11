@@ -1,5 +1,6 @@
 package id.ac.ui.cs.mobileprogramming.azharaiz.labs;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,18 +20,11 @@ import id.ac.ui.cs.mobileprogramming.azharaiz.labs.model.Task;
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
     ArrayList<Task> tasks;
     private FragmentManager manager;
-    public TaskAdapter(FragmentManager manager, TaskViewModel viewModel, LifecycleOwner owner) {
-        viewModel.getTaskList().observe(owner, new Observer<ArrayList<Task>>() {
-            @Override
-            public void onChanged(ArrayList<Task> tasks) {
-                setTasks(tasks);
-            }
-        });
-        this.manager = manager;
-    }
-
-    private void setTasks(ArrayList<Task> tasks) {
+    private TaskViewModel viewModel;
+    public TaskAdapter(FragmentManager manager, TaskViewModel viewModel, ArrayList<Task> tasks) {
         this.tasks = tasks;
+        this.viewModel = viewModel;
+        this.manager = manager;
     }
 
     @NonNull
@@ -42,13 +36,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final TaskViewHolder holder, int position) {
-        Task selectedTask = tasks.get(position);
+    public void onBindViewHolder(@NonNull final TaskViewHolder holder, final int position) {
+        final Task selectedTask = tasks.get(position);
         holder.taskTitle.setText(selectedTask.getTitle());
         holder.checkBox.setChecked(selectedTask.getDone());
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewModel.setSelectedTask(position);
+                selectedTask.setDone(!selectedTask.getDone());
+            }
+        });
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                viewModel.setSelectedTask(position);
                 TaskDetailFragment fragment = new TaskDetailFragment();
                 manager.beginTransaction().replace(R.id.fragment_task_list_main, fragment)
                         .addToBackStack(null).commit();
