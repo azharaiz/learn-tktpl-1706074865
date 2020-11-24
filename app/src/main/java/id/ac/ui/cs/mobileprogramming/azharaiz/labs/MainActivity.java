@@ -15,6 +15,21 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private WifiManager wifiManager;
     private final ArrayList<String> arrayList = new ArrayList<>();
     private ArrayAdapter<String> adapter;
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +82,54 @@ public class MainActivity extends AppCompatActivity {
                     arrayList.add(scanResult.SSID);
                 }
             }
+
+            boolean wifiListUpdated =
+                    intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
+
+            if (wifiListUpdated) {
+                sendPostRequest(arrayList);
+            }
             adapter.notifyDataSetChanged();
         }
     };
+
+    private void sendPostRequest(ArrayList<String> wifiList) {
+        String url = "https://c87d6dfeeca47c4292f3a7777c672b23.m.pipedream.net/wifi";
+
+        JSONObject data = new JSONObject();
+        JSONArray wifiArray = new JSONArray();
+
+        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024);
+
+        Network network = new BasicNetwork(new HurlStack());
+
+        requestQueue = new RequestQueue(cache, network);
+
+        requestQueue.start();
+
+        try {
+            for (String wifi: wifiList) {
+                wifiArray.put(wifi);
+            }
+            data.put("data", wifiArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, data, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Toast.makeText(getApplicationContext(), "Wifi data sent", Toast.LENGTH_SHORT)
+                        .show();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Error occurred", Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+
+        requestQueue.add(jsonObjectRequest);
+    }
 }
